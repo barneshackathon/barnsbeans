@@ -1,9 +1,9 @@
 const LS_KEY = 'barns-demo-state';
 const USER_NAME_KEY = 'barns-user-name';
 const SESSION_INIT_KEY = 'barns-session-initialized';
-const COFFEE_COUNTER_KEY = 'barns-coffee-counter';
+
 const SCANNED_QR_KEY = 'barns-scanned-qr-codes';
-const initialState = { green: 0, gold: 0, streak: 12, leaves: 0, friends: 11, coffeeCounter: 0 };
+const initialState = { green: 0, gold: 0, streak: 12, leaves: 0, friends: 11 };
 const LEAVES_COUNT = 44;
 const LEAVES_MAP_KEY = 'barns-leaves-map';
 const SKIPPED_LEAF_INDICES = new Set([38, 39, 42, 43]);
@@ -120,129 +120,45 @@ document.addEventListener('DOMContentLoaded', () => {
 function loadState() {
   try { 
     const savedState = JSON.parse(localStorage.getItem(stateKey())) || {};
-    const coffeeCounter = loadCoffeeCounter();
-    
-    return { ...initialState, ...savedState, coffeeCounter }; 
+    return { ...initialState, ...savedState }; 
   }
   catch { 
-    const coffeeCounter = loadCoffeeCounter();
-    
-    return { ...initialState, coffeeCounter }; 
+    return { ...initialState }; 
   }
 }
 function saveState() { localStorage.setItem(stateKey(), JSON.stringify(state)); }
 
-function loadCoffeeCounter() {
-  try { return Number(localStorage.getItem(scopedKey(COFFEE_COUNTER_KEY))) || 0; }
-  catch { return 0; }
-}
-
-function saveCoffeeCounter(counter) { 
-  try { localStorage.setItem(scopedKey(COFFEE_COUNTER_KEY), String(counter)); } 
-  catch {} 
-}
-
-function resetCoffeeCounter() {
-  state.coffeeCounter = 0;
-  saveCoffeeCounter(0);
+// Function to add one leaf directly when QR is scanned
+function addLeafOnQRScan() {
+  // Add one leaf directly
+  state.leaves = Math.min(LEAVES_COUNT, state.leaves + 1);
+  const res = addOneLeafToMap(false);
+  if (res && res.status === 'gold') { 
+    state.gold += 1; 
+  } else { 
+    state.green += 1; 
+  }
   saveState();
+  
+  // Check if we need to reset the gold pattern (every 5 green leaves)
+  const currentGreenCount = state.green;
+  if (currentGreenCount % 5 === 0) {
+    // Reset the gold pattern for the next 5 leaves
+    localStorage.removeItem('barns-gold-leaf-pattern');
+    console.log('Gold leaf pattern reset for next 5 leaves');
+  }
+  
+  // Update tree display
+  const canvas = document.getElementById('treeCanvas');
+  if (canvas) {
+    drawTreeImages(canvas, state.green, state.gold);
+  }
+  
+  // Update counters
   fillCounters();
-  console.log('تم إعادة تعيين عداد Beans إلى 0');
 }
 
-function ensureCoffeeCounterReset() {
-  // التأكد من أن العداد يعرض القيمة الصحيحة
-  if (state.coffeeCounter >= 10) {
-    resetCoffeeCounter();
-  }
-}
 
-function incrementCoffeeCounter() {
-  state.coffeeCounter += 5;
-  
-  if (state.coffeeCounter >= 10) {
-    // عند الوصول إلى 10، نضع العداد على 10 أولاً
-    state.coffeeCounter = 10;
-    saveCoffeeCounter(state.coffeeCounter);
-    saveState();
-    fillCounters();
-    
-    // إضافة ورقة خضراء عند الوصول إلى 10 Beans
-    state.leaves = Math.min(LEAVES_COUNT, state.leaves + 1);
-    const res = addOneLeafToMap(false);
-    if (res && res.status === 'gold') { 
-      state.gold += 1; 
-    } else { 
-      state.green += 1; 
-    }
-    saveState();
-    
-    // Check if we need to reset the gold pattern (every 5 green leaves)
-    const currentGreenCount = state.green;
-    if (currentGreenCount % 5 === 0) {
-      // Reset the gold pattern for the next 5 leaves
-      localStorage.removeItem('barns-gold-leaf-pattern');
-      console.log('Gold leaf pattern reset for next 5 leaves');
-    }
-    
-    // عرض رسالة المكافأة
-    showCoffeeRewardPopup();
-    
-    // إعادة تعيين العداد إلى 0 فوراً بعد الرسالة
-    setTimeout(() => {
-      resetCoffeeCounter();
-      
-      // تحديث الشجرة لتعرض الورقة الجديدة
-      const canvas = document.getElementById('treeCanvas');
-      if (canvas) {
-        drawTreeImages(canvas, state.green, state.gold);
-      }
-    }, 1500); // تقليل الوقت إلى 1.5 ثانية
-    
-  } else {
-    // إذا لم نصل إلى 10، نحفظ القيمة الحالية
-    saveCoffeeCounter(state.coffeeCounter);
-    saveState();
-    fillCounters();
-  }
-}
-
-function showCoffeeRewardPopup() {
-  const popup = document.createElement('div');
-  popup.className = 'coffee-reward-popup';
-  popup.innerHTML = `
-    <div class="coffee-reward-content">
-      <div class="coffee-reward-icon">🎉</div>
-      <h3 class="coffee-reward-title">مبروك! 🎊</h3>
-      <p class="coffee-reward-text">لقد وصلت إلى 10 Beans!</p>
-      <p class="coffee-reward-text">تم إضافة ورقة جديدة لشجرتك! 🌿</p>
-      <div class="coffee-reward-progress">10 of 10 مكتمل! ✨</div>
-      <div class="coffee-reward-hint">سيتم إعادة تعيين العداد إلى 0</div>
-    </div>
-  `;
-  
-  document.body.appendChild(popup);
-  
-  // إضافة تأثيرات إضافية
-  setTimeout(() => {
-    const icon = popup.querySelector('.coffee-reward-icon');
-    if (icon) {
-      icon.style.animation = 'iconBounce 0.8s ease-in-out infinite';
-    }
-  }, 1000);
-  
-  // إزالة الرسالة بعد 3 ثوانٍ
-  setTimeout(() => {
-    if (popup.parentNode) {
-      popup.style.animation = 'popupFadeOut 0.5s ease-in forwards';
-      setTimeout(() => {
-        if (popup.parentNode) {
-          popup.parentNode.removeChild(popup);
-        }
-      }, 500);
-    }
-  }, 3000);
-}
 
 function markLeafActivityNow(){
   try { localStorage.setItem(scopedKey(LAST_LEAF_MS_KEY), String(Date.now())); } catch {}
@@ -363,9 +279,7 @@ function resetTreeCounters() {
   state.green = 0;
   state.gold = 0;
   state.leaves = 0;
-  state.coffeeCounter = 0;
   saveState();
-  saveCoffeeCounter(0);
   try { localStorage.removeItem(leavesMapKey()); } catch {}
   try { localStorage.removeItem(goldExpKey()); } catch {}
 }
@@ -379,9 +293,8 @@ function fillCounters() {
   normalizeExpiredGold();
   setText('stat-gold', state.gold);
   
-  // التأكد من أن العداد يعرض القيمة الصحيحة
-  ensureCoffeeCounterReset();
-  setText('stat-coffee', `${state.coffeeCounter} of 10`);
+  // عرض إجمالي الحبات (أخضر + ذهبي)
+  setText('stat-total', state.green + state.gold);
   
   setText('streak', state.streak);
   setText('qr-green', state.green);
@@ -867,8 +780,8 @@ async function handleQrResult(data) {
       console.log('Invoice saved globally - preventing duplicate scans by other users');
     }
     
-    // Increase coffee counter for successful scan
-    incrementCoffeeCounter();
+    // Add one leaf directly for successful scan
+    addLeafOnQRScan();
     
 
     
