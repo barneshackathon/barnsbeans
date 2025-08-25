@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Barns – Chat</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+
+</head>
+<body data-page="chat">
+  <div class="screen">
+          <header class="chat-header">
+        <a class="icon-btn back" href="index.html" aria-label="Back">←</a>
+        <div class="chat-title"><img src="imgs/HomePage/bot.png" alt="" /><div><div class="title">Barnie</div><small>AI Assistant</small></div></div>
+      </header>
+
+    <main class="chat-body" id="chat-body" role="log" aria-live="polite">
+      <div class="msg bot">مرحباً! أنا بارني، مساعدك الصديق في عالم القهوة. كيف حالك اليوم؟ هل لديك مشروب في ذهنك؟</div>
+    </main>
+
+    <form class="chat-input" id="chat-form">
+      <input id="chat-text" placeholder="اكتب رسالتك هنا..." autocomplete="off" />
+      <button class="send" type="submit">➤</button>
+    </form>
+
+    <nav class="bottom-nav">
+      <a href="index.html" class="item active"><span class="ico"><img src="imgs/HomePage/Home icon.svg" alt="Home"></span><span>Home</span></a>
+      <a href="tree.html" class="item"><span class="ico"><img src="imgs/HomePage/Tree icon.svg" alt="Tree"></span><span>Tree</span></a>
+      <a href="#" class="item disabled"><span class="ico"><img src="imgs/HomePage/Order icon.svg" alt="Orders"></span><span>Orders</span></a>
+      <a href="#" class="item disabled"><span class="ico"><img src="imgs/HomePage/Account icon.svg" alt="Account"></span><span>Account</span></a>
+    </nav>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('=== PAGE LOADED ===');
+      
+      const chatForm = document.getElementById('chat-form');
+      const chatInput = document.getElementById('chat-text');
+      const chatBody = document.getElementById('chat-body');
+      
+      console.log('Elements found:', {
+        form: !!chatForm,
+        input: !!chatInput,
+        body: !!chatBody
+      });
+      
+      // رابط ويب هوك n8n من config.js
+      const webhookUrl = 'https://sultannn.app.n8n.cloud/webhook/7a43c1a8-7279-4ff5-b0e0-fb58cb2fd0cd';
+      
+      // الحصول على اسم المستخدم من localStorage
+      const userName = localStorage.getItem('barns-user-name') || 'Anonymous';
+      
+      console.log('Webhook URL configured:', webhookUrl);
+      console.log('User name loaded:', userName);
+      console.log('User name type:', typeof userName);
+      console.log('User name length:', userName ? userName.length : 0);
+      console.log('Raw localStorage value:', localStorage.getItem('barns-user-name'));
+      
+      // فحص إضافي للتأكد من أن userName صحيح
+      if (!userName || userName === 'undefined' || userName === 'null' || userName === '') {
+        console.warn('Warning: userName is invalid, using Anonymous');
+        userName = 'Anonymous';
+      }
+      
+      // إرسال الرسالة عند النقر على زر الإرسال
+      chatForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        sendMessage();
+      });
+      
+      // إرسال الرسالة عند الضغط على Enter
+      chatInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+      
+      function sendMessage() {
+        console.log('=== SEND MESSAGE CALLED ===');
+        
+        const message = chatInput.value.trim();
+        console.log('Input value:', chatInput.value);
+        console.log('Trimmed message:', message);
+        
+        if (!message) {
+          console.log('Empty message, returning');
+          return;
+        }
+        
+        console.log('Proceeding with message:', message);
+        console.log('Current userName in sendMessage:', userName);
+        
+        // إضافة الرسالة إلى الشات
+        addMessageToChat(message, 'me');
+        
++        // إظهار رسالة "جاري الكتابة" مع الأنيميشن
+        showTypingIndicator();
+        
+        // إرسال الرسالة إلى ويب هوك n8n باستخدام POST
+        sendToWebhook(webhookUrl, message);
+        
+        // مسح حقل الإدخال
+        chatInput.value = '';
+      }
+      
+      function addMessageToChat(message, type) {
+        console.log('Adding message to chat:', { message, type });
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('msg');
+        messageDiv.classList.add(type);
+        
+        // عرض الرسالة كما هي بدون إضافة اسم المستخدم
+        messageDiv.textContent = message;
+        
+        chatBody.appendChild(messageDiv);
+        scrollToBottom();
+        
+        console.log('Message added successfully');
+      }
+      
+      function showTypingIndicator() {
+        // إزالة أي مؤشر كتابة سابق
+        removeTypingIndicator();
+        
+        const typingDiv = document.createElement('div');
+        typingDiv.classList.add('msg', 'bot', 'typing-indicator');
+        typingDiv.innerHTML = `
+          <div class="typing-text">Barnie is thinking</div>
+          <div class="typing-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+        `;
+        
+        chatBody.appendChild(typingDiv);
+        scrollToBottom();
+      }
+      
+      function removeTypingIndicator() {
+        const existingTyping = chatBody.querySelector('.typing-indicator');
+        if (existingTyping) {
+          existingTyping.remove();
+        }
+      }
+      
+      function scrollToBottom() {
+        // التمرير إلى الأسفل لعرض الرسالة الجديدة
+        setTimeout(() => {
+          chatBody.scrollTop = chatBody.scrollHeight;
+        }, 100);
+      }
+      
+      function sendToWebhook(url, message) {
+        console.log('=== WEBHOOK REQUEST START ===');
+        console.log('Webhook URL:', url);
+        console.log('Message:', message);
+        console.log('Current userName:', userName);
+        console.log('userName type:', typeof userName);
+        console.log('userName is empty:', !userName || userName === '');
+        
+        // التأكد من أن userName متاح
+        const finalUserName = userName && userName !== 'undefined' ? userName : 'Anonymous';
+        
+        const requestPayload = {
+          message: message,  // الرسالة الأصلية بدون تعديل
+          user: finalUserName,    // اسم المستخدم منفصل
+          timestamp: new Date().toISOString(),
+          session: Date.now()
+        };
+        
+        console.log('Final userName used:', finalUserName);
+        
+        console.log('Full request payload:', requestPayload);
+        console.log('User sending message:', userName);
+        console.log('Request headers:', {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        });
+        
+        // إرسال الطلب باستخدام POST
+        fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(requestPayload)
+        })
+        .then(response => {
+          console.log('=== WEBHOOK RESPONSE RECEIVED ===');
+          console.log('Response status:', response.status);
+          console.log('Response ok:', response.ok);
+          console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+          
+          if (response.ok) {
+            console.log('Response is ok, parsing JSON...');
+            return response.json();
+          } else {
+            console.error('Response not ok, status:', response.status);
+            throw new Error('فشل في الإرسال: ' + response.status);
+          }
+        })
+        .then(data => {
+          console.log('=== RESPONSE DATA PROCESSING ===');
+          console.log('Raw response data:', data);
+          console.log('Data type:', typeof data);
+          console.log('Data is null/undefined:', data === null || data === undefined);
+          
+          // إزالة مؤشر الكتابة
+          removeTypingIndicator();
+          
+          // عرض الرد الفعلي من n8n (من Respond to Webhook)
+          if (data) {
+            // محاولة استخراج النص من الرد
+            const responseText = extractResponseText(data);
+            console.log('Extracted response text:', responseText);
+            console.log('Response text type:', typeof responseText);
+            addMessageToChat(responseText, 'bot');
+          } else {
+            console.log('No data received, showing default message');
+            // في حالة عدم وجود رد، نضيف رسالة افتراضية
+            addMessageToChat('شكراً على رسالتك. كيف يمكنني مساعدتك؟', 'bot');
+          }
+        })
+        .catch(error => {
+          console.error('=== ERROR HANDLING ===');
+          console.error('Error name:', error.name);
+          console.error('Error message:', error.message);
+          console.error('Error stack:', error.stack);
+          console.error('Full error object:', error);
+          
+          // إزالة مؤشر الكتابة
+          removeTypingIndicator();
+          
+          // في حالة الخطأ، نضيف رسالة افتراضية
+          addMessageToChat('عذراً، حدث خطأ في معالجة رسالتك. يرجى المحاولة مرة أخرى.', 'bot');
+        });
+      }
+      
+      function extractResponseText(data) {
+        // محاولة استخراج النص من الرد بطرق مختلفة
+        if (typeof data === 'string') {
+          return data;
+        } else if (data && typeof data === 'object') {
+          // إذا كان الرد يحتوي على حقل response أو message أو text
+          if (data.response) {
+            return data.response;
+          } else if (data.message) {
+            return data.message;
+          } else if (data.text) {
+            return data.text;
+          } else if (data.output) {
+            return data.output;
+          }
+          
+          // إذا لم نجد الحقول الشائعة، نعيد أول خاصية نصية نجدها
+          for (const key in data) {
+            if (typeof data[key] === 'string') {
+              return data[key];
+            }
+          }
+          
+          // إذا لم نجد أي نص، نعيد JSON.stringify للكائن
+          return JSON.stringify(data);
+        }
+        
+        // إذا لم نتمكن من استخراج النص، نعود برسالة افتراضية
+        return "شكراً على رسالتك. كيف يمكنني مساعدتك؟";
+      }
+      
+      // التمرير إلى الأسفل عند تحميل الصفحة
+      scrollToBottom();
+    });
+  </script>
+</body>
+</html>

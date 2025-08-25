@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Barns – Invoice Manager</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    .invoice-manager {
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .invoice-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .invoice-header h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    
+    .invoice-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+    }
+    
+    .stat-number {
+      font-size: 2em;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .stat-label {
+      opacity: 0.9;
+      font-size: 0.9em;
+    }
+    
+    .invoice-actions {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%);
+      color: white;
+    }
+    
+    .btn-secondary {
+      background: linear-gradient(135deg, #FF9800 0%, #FFC107 100%);
+      color: white;
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, #f44336 0%, #e91e63 100%);
+      color: white;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .invoice-list {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .invoice-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+      transition: background-color 0.3s ease;
+    }
+    
+    .invoice-item:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .invoice-item:last-child {
+      border-bottom: none;
+    }
+    
+    .invoice-info {
+      flex: 1;
+    }
+    
+    .invoice-id {
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 5px;
+    }
+    
+    .invoice-details {
+      font-size: 0.9em;
+      color: #666;
+    }
+    
+    .invoice-actions-item {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .btn-small {
+      padding: 8px 16px;
+      font-size: 12px;
+    }
+    
+    .deleted {
+      opacity: 0.6;
+      background-color: #f8f9fa;
+    }
+    
+    .deleted .invoice-id {
+      text-decoration: line-through;
+    }
+    
+    .search-box {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #eee;
+      border-radius: 8px;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .search-box:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    .no-invoices {
+      text-align: center;
+      color: #666;
+      padding: 40px;
+      font-style: italic;
+    }
+    
+    .file-info {
+      background: #e3f2fd;
+      border: 1px solid #2196f3;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      color: #1976d2;
+    }
+    
+    .file-info h3 {
+      margin: 0 0 10px 0;
+      color: #1565c0;
+    }
+    
+    .file-info p {
+      margin: 5px 0;
+      font-size: 0.9em;
+    }
+    
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255,255,255,0.9);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .back-btn:hover {
+      background: white;
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body data-page="invoice-manager">
+  <button class="back-btn" onclick="goBack()" title="Back">←</button>
+  
+  <div class="invoice-manager">
+    <div class="invoice-header">
+      <h1>Invoice Manager</h1>
+      <p>Manage your scanned invoices with persistent file storage</p>
+    </div>
+
+    <div class="file-info" id="file-info">
+      <h3>Storage Information</h3>
+      <p id="storage-type">Initializing...</p>
+      <p id="file-location">Location: Not set</p>
+    </div>
+
+    <div class="invoice-stats" id="invoice-stats">
+      <div class="stat-card">
+        <div class="stat-number" id="total-invoices">-</div>
+        <div class="stat-label">Total Invoices</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="active-invoices">-</div>
+        <div class="stat-label">Active Invoices</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="deleted-invoices">-</div>
+        <div class="stat-label">Deleted Invoices</div>
+      </div>
+    </div>
+
+    <div class="invoice-actions">
+      <button class="btn btn-primary" onclick="exportInvoices()">Export All</button>
+      <button class="btn btn-secondary" onclick="importInvoices()">Import</button>
+      <button class="btn btn-danger" onclick="clearAllInvoices()">Clear All</button>
+      <button class="btn btn-secondary" onclick="refreshInvoices()">Refresh</button>
+    </div>
+
+    <input type="text" class="search-box" id="search-box" placeholder="Search invoices..." oninput="searchInvoices()">
+
+    <div class="invoice-list" id="invoice-list">
+      <div class="no-invoices">Loading invoices...</div>
+    </div>
+  </div>
+
+  <script src="assets/js/invoice-storage.js"></script>
+  <script>
+    let allInvoices = [];
+    let filteredInvoices = [];
+
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initializeInvoiceManager();
+    });
+
+    async function initializeInvoiceManager() {
+      try {
+        // Initialize the invoice storage
+        await window.invoiceStorage.init();
+        
+        // Update storage info
+        updateStorageInfo();
+        
+        // Load and display invoices
+        await loadInvoices();
+        
+        // Update stats
+        updateStats();
+      } catch (error) {
+        console.error('Failed to initialize invoice manager:', error);
+        showError('Failed to initialize invoice manager');
+      }
+    }
+
+    async function loadInvoices() {
+      try {
+        allInvoices = await window.invoiceStorage.getAllInvoices();
+        filteredInvoices = [...allInvoices];
+        displayInvoices();
+      } catch (error) {
+        console.error('Failed to load invoices:', error);
+        showError('Failed to load invoices');
+      }
+    }
+
+    function displayInvoices() {
+      const list = document.getElementById('invoice-list');
+      
+      if (filteredInvoices.length === 0) {
+        list.innerHTML = '<div class="no-invoices">No invoices found</div>';
+        return;
+      }
+
+      list.innerHTML = filteredInvoices.map(invoice => `
+        <div class="invoice-item ${invoice.deleted ? 'deleted' : ''}">
+          <div class="invoice-info">
+            <div class="invoice-id">${invoice.id}</div>
+            <div class="invoice-details">
+              Scanned: ${new Date(invoice.timestamp).toLocaleString()}<br>
+              User: ${invoice.user}<br>
+              ${invoice.deleted ? `Deleted: ${new Date(invoice.deletedAt).toLocaleString()}` : ''}
+            </div>
+          </div>
+          <div class="invoice-actions-item">
+            ${invoice.deleted ? 
+              `<button class="btn btn-primary btn-small" onclick="restoreInvoice('${invoice.id}')">Restore</button>` :
+              `<button class="btn btn-danger btn-small" onclick="deleteInvoice('${invoice.id}')">Delete</button>`
+            }
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function deleteInvoice(invoiceId) {
+      if (!confirm('Are you sure you want to delete this invoice?')) return;
+      
+      try {
+        const success = await window.invoiceStorage.deleteInvoice(invoiceId);
+        if (success) {
+          await loadInvoices();
+          updateStats();
+          showSuccess('Invoice deleted successfully');
+        } else {
+          showError('Failed to delete invoice');
+        }
+      } catch (error) {
+        console.error('Failed to delete invoice:', error);
+        showError('Failed to delete invoice');
+      }
+    }
+
+    async function restoreInvoice(invoiceId) {
+      try {
+        const success = await window.invoiceStorage.restoreInvoice(invoiceId);
+        if (success) {
+          await loadInvoices();
+          updateStats();
+          showSuccess('Invoice restored successfully');
+        } else {
+          showError('Failed to restore invoice');
+        }
+      } catch (error) {
+        console.error('Failed to restore invoice:', error);
+        showError('Failed to restore invoice');
+      }
+    }
+
+    async function exportInvoices() {
+      try {
+        const success = await window.invoiceStorage.exportInvoices();
+        if (success) {
+          showSuccess('Invoices exported successfully');
+        } else {
+          showError('Failed to export invoices');
+        }
+      } catch (error) {
+        console.error('Failed to export invoices:', error);
+        showError('Failed to export invoices');
+      }
+    }
+
+    async function importInvoices() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      
+      input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          try {
+            const success = await window.invoiceStorage.importInvoices(file);
+            if (success) {
+              await loadInvoices();
+              updateStats();
+              showSuccess('Invoices imported successfully');
+            } else {
+              showError('Failed to import invoices');
+            }
+          } catch (error) {
+            console.error('Failed to import invoices:', error);
+            showError('Failed to import invoices');
+          }
+        }
+      };
+      
+      input.click();
+    }
+
+    async function clearAllInvoices() {
+      if (!confirm('Are you sure you want to clear ALL invoices? This action cannot be undone!')) return;
+      
+      try {
+        const success = await window.invoiceStorage.clearAll();
+        if (success) {
+          await loadInvoices();
+          updateStats();
+          showSuccess('All invoices cleared successfully');
+        } else {
+          showError('Failed to clear invoices');
+        }
+      } catch (error) {
+        console.error('Failed to clear invoices:', error);
+        showError('Failed to clear invoices');
+      }
+    }
+
+    async function refreshInvoices() {
+      await loadInvoices();
+      updateStats();
+      showSuccess('Invoices refreshed');
+    }
+
+    function searchInvoices() {
+      const query = document.getElementById('search-box').value.toLowerCase();
+      
+      if (!query) {
+        filteredInvoices = [...allInvoices];
+      } else {
+        filteredInvoices = allInvoices.filter(invoice => 
+          invoice.id.toLowerCase().includes(query) ||
+          (invoice.data && invoice.data.toLowerCase().includes(query)) ||
+          (invoice.user && invoice.user.toLowerCase().includes(query))
+        );
+      }
+      
+      displayInvoices();
+    }
+
+    async function updateStats() {
+      try {
+        const stats = await window.invoiceStorage.getStats();
+        
+        document.getElementById('total-invoices').textContent = stats.total;
+        document.getElementById('active-invoices').textContent = stats.active;
+        document.getElementById('deleted-invoices').textContent = stats.deleted;
+      } catch (error) {
+        console.error('Failed to update stats:', error);
+      }
+    }
+
+    function updateStorageInfo() {
+      const storageType = window.invoiceStorage.fileHandle ? 'File System' : 'Local Storage';
+      const fileLocation = window.invoiceStorage.fileHandle ? 'Persistent file storage' : 'Browser local storage';
+      
+      document.getElementById('storage-type').textContent = `Storage Type: ${storageType}`;
+      document.getElementById('file-location').textContent = `Location: ${fileLocation}`;
+    }
+
+    function showSuccess(message) {
+      // Simple success notification
+      alert('Success: ' + message);
+    }
+
+    function showError(message) {
+      // Simple error notification
+      alert('Error: ' + message);
+    }
+
+    function goBack() {
+      window.history.back();
+    }
+  </script>
+</body>
+</html>

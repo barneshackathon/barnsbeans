@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Global Duplicate Prevention Test - Barns Project</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    .test-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      font-family: 'Cairo', sans-serif;
+    }
+    
+    .test-section {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    
+    .test-title {
+      color: #0f5b46;
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+    
+    .test-button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 5px;
+      transition: background 0.3s;
+    }
+    
+    .test-button:hover {
+      background: #45a049;
+    }
+    
+    .test-button.danger {
+      background: #f44336;
+    }
+    
+    .test-button.danger:hover {
+      background: #da190b;
+    }
+    
+    .test-button.warning {
+      background: #ff9800;
+    }
+    
+    .test-button.warning:hover {
+      background: #e68900;
+    }
+    
+    .test-result {
+      background: #e8f5e8;
+      border: 1px solid #4CAF50;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 15px 0;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+    
+    .test-result.error {
+      background: #ffebee;
+      border-color: #f44336;
+    }
+    
+    .test-result.warning {
+      background: #fff3e0;
+      border-color: #ff9800;
+    }
+    
+    .test-info {
+      background: #e3f2fd;
+      border: 1px solid #2196F3;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 15px 0;
+    }
+    
+    .status-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    
+    .status-online {
+      background: #4CAF50;
+    }
+    
+    .status-offline {
+      background: #f44336;
+    }
+    
+    .status-warning {
+      background: #ff9800;
+    }
+
+    .status-display {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 15px 0;
+    }
+    
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #e9ecef;
+    }
+    
+    .status-item:last-child {
+      border-bottom: none;
+    }
+    
+    .status-label {
+      font-weight: 600;
+      color: #495057;
+    }
+    
+    .status-value {
+      font-weight: 500;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: #e9ecef;
+    }
+    
+    .github-actions {
+      display: flex;
+      gap: 10px;
+      margin: 15px 0;
+    }
+    
+    .action-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .download-btn {
+      background: #28a745;
+      color: white;
+    }
+    
+    .download-btn:hover {
+      background: #218838;
+      transform: translateY(-2px);
+    }
+    
+    .refresh-btn {
+      background: #17a2b8;
+      color: white;
+    }
+    
+    .refresh-btn:hover {
+      background: #138496;
+      transform: translateY(-2px);
+    }
+    
+    .setup-info {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 15px 0;
+    }
+    
+    .setup-info h4 {
+      color: #856404;
+      margin-top: 0;
+    }
+    
+    .setup-info ol {
+      color: #856404;
+      margin: 10px 0;
+    }
+    
+    .setup-info code {
+      background: #f8f9fa;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body data-page="test-global-duplicate">
+  <div class="test-container">
+    <div class="test-header">
+      <h1 class="test-title">🧪 Global Duplicate Prevention Test</h1>
+      <p>Test the system that prevents duplicate QR code scans across all users</p>
+    </div>
+    
+    <div class="test-section">
+      <h3>🌐 GitHub Integration Status</h3>
+      <div id="github-status" class="status-display">
+        <div class="status-item">
+          <span class="status-label">GitHub Connection:</span>
+          <span id="github-connection" class="status-value">Checking...</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Data Ready for Commit:</span>
+          <span id="github-commit-ready" class="status-value">Checking...</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Last Sync:</span>
+          <span id="github-last-sync" class="status-value">Checking...</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Pending Changes:</span>
+          <span id="github-pending" class="status-value">Checking...</span>
+        </div>
+      </div>
+      
+      <div class="github-actions">
+        <button onclick="downloadGitHubData()" class="action-btn download-btn">
+          📥 Download Data for GitHub
+        </button>
+        <button onclick="checkGitHubStatus()" class="action-btn refresh-btn">
+          🔄 Refresh Status
+        </button>
+      </div>
+      
+      <div id="github-setup-info" class="setup-info" style="display: none;">
+        <h4>📋 GitHub Setup Required</h4>
+        <p>To enable global duplicate prevention, you need to:</p>
+        <ol>
+          <li>Upload the downloaded data file to your GitHub repository</li>
+          <li>Replace the existing <code>data/barns-invoices.json</code> file</li>
+          <li>Commit and push the changes</li>
+          <li>Wait for GitHub Pages to update</li>
+        </ol>
+        <p><strong>Current Status:</strong> <span id="setup-status">Local mode only</span></p>
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <h2 class="test-title">🔍 Test QR Code Scanning</h2>
+      <div class="test-info">
+        <strong>How it works:</strong> When you scan a QR code, it gets saved globally. 
+        If another user tries to scan the same code, they'll see a "already scanned" message.
+      </div>
+      
+      <div class="test-actions">
+        <button class="test-button" onclick="testNewScan()">✅ Test New Scan</button>
+        <button class="test-button warning" onclick="testDuplicateScan()">⚠️ Test Duplicate Scan</button>
+        <button class="test-button danger" onclick="clearTestData()">🗑️ Clear Test Data</button>
+      </div>
+      
+      <div id="scan-results"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2 class="test-title">📋 Current Invoices</h2>
+      <div id="invoices-list">
+        <div class="test-info">Loading invoices...</div>
+      </div>
+      
+      <div class="test-actions">
+        <button class="test-button" onclick="refreshInvoices()">🔄 Refresh List</button>
+        <button class="test-button warning" onclick="exportInvoices()">📤 Export Data</button>
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <h2 class="test-title">🔧 Advanced Tests</h2>
+      <div class="test-actions">
+        <button class="test-button" onclick="testStorageMethods()">💾 Test Storage Methods</button>
+        <button class="test-button warning" onclick="testErrorHandling()">⚠️ Test Error Handling</button>
+        <button class="test-button" onclick="testPerformance()">⚡ Performance Test</button>
+      </div>
+      
+      <div id="advanced-results"></div>
+    </div>
+  </div>
+
+  <script src="assets/js/invoice-storage.js"></script>
+  <script>
+    let testInvoices = [];
+    let systemStatus = 'unknown';
+    
+    // Initialize the test system
+    document.addEventListener('DOMContentLoaded', async function() {
+      await checkSystemStatus();
+      await refreshInvoices();
+    });
+    
+    // Check system status
+    async function checkSystemStatus() {
+      const statusDiv = document.getElementById('system-status');
+      const setupInfoDiv = document.getElementById('github-setup-info');
+      statusDiv.innerHTML = '<div class="test-info">Checking system status...</div>';
+      
+      try {
+        // Check if invoice storage is available
+        if (window.invoiceStorage) {
+          const initialized = await window.invoiceStorage.init();
+          
+          if (initialized) {
+            // Check if GitHub data is accessible
+            try {
+              const response = await fetch('data/barns-invoices.json');
+              if (response.ok) {
+                systemStatus = 'online';
+                statusDiv.innerHTML = `
+                  <div class="test-result">
+                    <span class="status-indicator status-online"></span>
+                    ✅ System Online - Global Duplicate Prevention Active
+                    
+                    Features:
+                    - GitHub Integration: Active
+                    - Global Storage: Active
+                    - Duplicate Prevention: Active
+                    - Cross-User Protection: Active
+                  </div>
+                `;
+                setupInfoDiv.style.display = 'none';
+              } else {
+                systemStatus = 'warning';
+                statusDiv.innerHTML = `
+                  <div class="test-result warning">
+                    <span class="status-indicator status-warning"></span>
+                    ⚠️ System Partially Online - GitHub Integration Limited
+                    
+                    Current Status:
+                    - Invoice Storage: Active (Local)
+                    - GitHub Integration: Not Available
+                    - Duplicate Prevention: Local Only
+                    - Cross-User Protection: Limited
+                    
+                    To enable full functionality, upload to GitHub!
+                  </div>
+                `;
+                setupInfoDiv.style.display = 'block';
+              }
+            } catch (error) {
+              systemStatus = 'warning';
+              statusDiv.innerHTML = `
+                <div class="test-result warning">
+                  <span class="status-indicator status-warning"></span>
+                  ⚠️ System Partially Online - Local Development Mode
+                  
+                  Current Status:
+                  - Invoice Storage: Active (Local)
+                  - GitHub Integration: Not Available
+                  - Duplicate Prevention: Local Only
+                  - Cross-User Protection: Limited
+                  
+                  To enable full functionality, upload to GitHub!
+                </div>
+              `;
+              setupInfoDiv.style.display = 'block';
+            }
+          } else {
+            systemStatus = 'warning';
+            statusDiv.innerHTML = `
+              <div class="test-result warning">
+                <span class="status-indicator status-warning"></span>
+                ⚠️ System Partially Online - Some Features Limited
+                
+                Issues:
+                - Invoice storage initialization failed
+                - Falling back to localStorage
+                - Global protection may be limited
+              </div>
+            `;
+            setupInfoDiv.style.display = 'block';
+          }
+        } else {
+          systemStatus = 'offline';
+          statusDiv.innerHTML = `
+            <div class="test-result error">
+              <span class="status-indicator status-offline"></span>
+              ❌ System Offline - Global Duplicate Prevention Not Available
+              
+              Issues:
+              - Invoice storage system not loaded
+              - Only local duplicate prevention available
+              - Cross-user protection disabled
+            </div>
+          `;
+          setupInfoDiv.style.display = 'block';
+        }
+      } catch (error) {
+        systemStatus = 'error';
+        statusDiv.innerHTML = `
+          <div class="test-result error">
+            <span class="status-indicator status-offline"></span>
+            ❌ System Error - Cannot Determine Status
+            
+            Error: ${error.message}
+          </div>
+        `;
+        setupInfoDiv.style.display = 'block';
+      }
+    }
+    
+    // Test GitHub connection
+    async function testGitHubConnection() {
+      const resultsDiv = document.getElementById('advanced-results');
+      resultsDiv.innerHTML = '<div class="test-info">Testing GitHub connection...</div>';
+      
+      try {
+        // Try to load from project data directory
+        const response = await fetch('data/barns-invoices.json');
+        
+        if (response.ok) {
+          const data = await response.json();
+          resultsDiv.innerHTML = `
+            <div class="test-result">
+              ✅ GitHub Connection Successful
+              
+              File: data/barns-invoices.json
+              Status: ${response.status} ${response.statusText}
+              Invoices: ${Object.keys(data).length}
+              Last Modified: ${new Date(response.headers.get('last-modified') || Date.now()).toLocaleString()}
+            </div>
+          `;
+        } else {
+          resultsDiv.innerHTML = `
+            <div class="test-result warning">
+              ⚠️ GitHub Connection Limited
+              
+              Status: ${response.status} ${response.statusText}
+              Note: File may not exist yet or may be inaccessible
+            </div>
+          `;
+        }
+      } catch (error) {
+        resultsDiv.innerHTML = `
+          <div class="test-result error">
+            ❌ GitHub Connection Failed
+            
+            Error: ${error.message}
+            Note: This is normal for local development
+          </div>
+        `;
+      }
+    }
+    
+    // Test new scan
+    async function testNewScan() {
+      const resultsDiv = document.getElementById('scan-results');
+      const testId = `TEST-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+      
+      resultsDiv.innerHTML = '<div class="test-info">Testing new scan...</div>';
+      
+      try {
+        if (window.invoiceStorage) {
+          const success = await window.invoiceStorage.saveInvoice(testId, `Test invoice data for ${testId}`);
+          
+          if (success) {
+            resultsDiv.innerHTML = `
+              <div class="test-result">
+                ✅ New Scan Test Successful
+                
+                Invoice ID: ${testId}
+                Status: Saved globally
+                Duplicate Prevention: Active
+                Other users cannot scan this code
+              </div>
+            `;
+            
+            // Add to test invoices
+            testInvoices.push(testId);
+            await refreshInvoices();
+          } else {
+            resultsDiv.innerHTML = `
+              <div class="test-result warning">
+                ⚠️ New Scan Test Failed
+                
+                Invoice ID: ${testId}
+                Status: Already exists or save failed
+                Note: This may indicate a duplicate or system issue
+              </div>
+            `;
+          }
+        } else {
+          resultsDiv.innerHTML = `
+            <div class="test-result error">
+              ❌ Cannot Test - Invoice Storage Not Available
+            </div>
+          `;
+        }
+      } catch (error) {
+        resultsDiv.innerHTML = `
+          <div class="test-result error">
+            ❌ New Scan Test Error
+            
+            Error: ${error.message}
+          </div>
+        `;
+      }
+    }
+    
+    // Test duplicate scan
+    async function testDuplicateScan() {
+      const resultsDiv = document.getElementById('scan-results');
+      
+      if (testInvoices.length === 0) {
+        resultsDiv.innerHTML = `
+          <div class="test-result warning">
+            ⚠️ No Test Invoices Available
+            
+            Please create a test invoice first using "Test New Scan"
+          </div>
+        `;
+        return;
+      }
+      
+      const testId = testInvoices[0];
+      resultsDiv.innerHTML = '<div class="test-info">Testing duplicate scan...</div>';
+      
+      try {
+        if (window.invoiceStorage) {
+          const exists = await window.invoiceStorage.isInvoiceExists(testId);
+          
+          if (exists) {
+            const info = await window.invoiceStorage.getInvoiceInfo(testId);
+            resultsDiv.innerHTML = `
+              <div class="test-result">
+                ✅ Duplicate Prevention Test Successful
+                
+                Invoice ID: ${testId}
+                Status: Already exists globally
+                Original User: ${info.user || 'Unknown'}
+                Scanned At: ${new Date(info.timestamp).toLocaleString()}
+                Protection: Active - Other users cannot scan this code
+              </div>
+            `;
+          } else {
+            resultsDiv.innerHTML = `
+              <div class="test-result warning">
+                ⚠️ Duplicate Prevention Test Failed
+                
+                Invoice ID: ${testId}
+                Status: Not found in global storage
+                Note: This may indicate a system issue
+              </div>
+            `;
+          }
+        } else {
+          resultsDiv.innerHTML = `
+            <div class="test-result error">
+              ❌ Cannot Test - Invoice Storage Not Available
+            </div>
+          `;
+        }
+      } catch (error) {
+        resultsDiv.innerHTML = `
+          <div class="test-result error">
+            ❌ Duplicate Scan Test Error
+            
+            Error: ${error.message}
+          </div>
+        `;
+      }
+    }
+    
+    // Clear test data
+    async function clearTestData() {
+      if (confirm('Are you sure you want to clear all test data? This will remove all test invoices.')) {
+        try {
+          if (window.invoiceStorage) {
+            for (const testId of testInvoices) {
+              await window.invoiceStorage.deleteInvoice(testId);
+            }
+          }
+          
+          testInvoices = [];
+          await refreshInvoices();
+          
+          document.getElementById('scan-results').innerHTML = `
+            <div class="test-result">
+              ✅ Test Data Cleared Successfully
+              
+              All test invoices have been removed
+            </div>
+          `;
+        } catch (error) {
+          document.getElementById('scan-results').innerHTML = `
+            <div class="test-result error">
+              ❌ Error Clearing Test Data
+              
+              Error: ${error.message}
+            </div>
+          `;
+        }
+      }
+    }
+    
+    // Refresh invoices list
+    async function refreshInvoices() {
+      const listDiv = document.getElementById('invoices-list');
+      
+      try {
+        if (window.invoiceStorage) {
+          const allInvoices = await window.invoiceStorage.getAllInvoices();
+          const activeInvoices = allInvoices.filter(inv => !inv.deleted);
+          
+          if (activeInvoices.length === 0) {
+            listDiv.innerHTML = `
+              <div class="test-info">
+                📭 No Invoices Found
+                
+                The system is ready for new scans. Each QR code can only be scanned once globally.
+              </div>
+            `;
+          } else {
+            const invoicesHtml = activeInvoices.map(inv => `
+              <div class="test-result" style="margin: 10px 0;">
+                <strong>ID:</strong> ${inv.id}<br>
+                <strong>User:</strong> ${inv.user || 'Unknown'}<br>
+                <strong>Status:</strong> ${inv.status}<br>
+                <strong>Scanned:</strong> ${new Date(inv.timestamp).toLocaleString()}<br>
+                <strong>Global ID:</strong> ${inv.globalId || 'N/A'}
+              </div>
+            `).join('');
+            
+            listDiv.innerHTML = `
+              <div class="test-info">
+                📋 Found ${activeInvoices.length} Active Invoice(s)
+              </div>
+              ${invoicesHtml}
+            `;
+          }
+        } else {
+          listDiv.innerHTML = `
+            <div class="test-result error">
+              ❌ Invoice Storage Not Available
+            </div>
+          `;
+        }
+      } catch (error) {
+        listDiv.innerHTML = `
+          <div class="test-result error">
+            ❌ Error Loading Invoices
+            
+            Error: ${error.message}
+          </div>
+        `;
+      }
+    }
+    
+    // Export invoices
+    async function exportInvoices() {
+      try {
+        if (window.invoiceStorage) {
+          const allInvoices = await window.invoiceStorage.getAllInvoices();
+          const dataStr = JSON.stringify(allInvoices, null, 2);
+          const dataBlob = new Blob([dataStr], {type: 'application/json'});
+          
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(dataBlob);
+          link.download = `barns-invoices-${new Date().toISOString().split('T')[0]}.json`;
+          link.click();
+          
+          document.getElementById('scan-results').innerHTML = `
+            <div class="test-result">
+              ✅ Invoices Exported Successfully
+              
+              File: ${link.download}
+              Invoices: ${allInvoices.length}
+            </div>
+          `;
+        } else {
+          document.getElementById('scan-results').innerHTML = `
+            <div class="test-result error">
+              ❌ Cannot Export - Invoice Storage Not Available
+            </div>
+          `;
+        }
+      } catch (error) {
+        document.getElementById('scan-results').innerHTML = `
+          <div class="test-result error">
+            ❌ Export Error
+            
+            Error: ${error.message}
+          </div>
+        `;
+      }
+    }
+    
+    // Test storage methods
+    async function testStorageMethods() {
+      const resultsDiv = document.getElementById('advanced-results');
+      resultsDiv.innerHTML = '<div class="test-info">Testing storage methods...</div>';
+      
+      try {
+        if (window.invoiceStorage) {
+          const methods = [];
+          
+          // Test project data loading
+          try {
+            const response = await fetch('data/barns-invoices.json');
+            methods.push(`✅ Project Data: ${response.ok ? 'Available' : 'Not Found'}`);
+          } catch (e) {
+            methods.push(`❌ Project Data: ${e.message}`);
+          }
+          
+          // Test file system access
+          if ('showOpenFilePicker' in window) {
+            methods.push('✅ File System Access API: Available');
+          } else {
+            methods.push('❌ File System Access API: Not Available');
+          }
+          
+          // Test localStorage
+          try {
+            localStorage.setItem('test', 'test');
+            localStorage.removeItem('test');
+            methods.push('✅ LocalStorage: Available');
+          } catch (e) {
+            methods.push(`❌ LocalStorage: ${e.message}`);
+          }
+          
+          resultsDiv.innerHTML = `
+            <div class="test-result">
+              🔧 Storage Methods Test Results
+              
+              ${methods.join('\n')}
+            </div>
+          `;
+        } else {
+          resultsDiv.innerHTML = `
+            <div class="test-result error">
+              ❌ Cannot Test - Invoice Storage Not Available
+            </div>
+          `;
+        }
+      } catch (error) {
+        resultsDiv.innerHTML = `
+          <div class="test-result error">
+            ❌ Storage Methods Test Error
+            
+            Error: ${error.message}
+          </div>
+        `;
+      }
+    }
+    
+    // Test error handling
+    async function testErrorHandling() {
+      const resultsDiv = document.getElementById('advanced-results');
+      resultsDiv.innerHTML = '<div class="test-info">Testing error handling...</div>';
+      
+      try {
+        if (window.invoiceStorage) {
+          const errors = [];
+          
+          // Test with invalid data
+          try {
+            await window.invoiceStorage.saveInvoice('', '');
+            errors.push('❌ Empty ID: Should have failed');
+          } catch (e) {
+            errors.push('✅ Empty ID: Properly handled');
+          }
+          
+          // Test with null data
+          try {
+            await window.invoiceStorage.saveInvoice(null, null);
+            errors.push('❌ Null Data: Should have failed');
+          } catch (e) {
+            errors.push('✅ Null Data: Properly handled');
+          }
+          
+          // Test with very long data
+          try {
+            const longData = 'x'.repeat(10000);
+            await window.invoiceStorage.saveInvoice('LONG-TEST', longData);
+            errors.push('✅ Long Data: Handled successfully');
+          } catch (e) {
+            errors.push(`❌ Long Data: ${e.message}`);
+          }
+          
+          resultsDiv.innerHTML = `
+            <div class="test-result">
+              ⚠️ Error Handling Test Results
+              
+              ${errors.join('\n')}
+            </div>
+          `;
+        } else {
+          resultsDiv.innerHTML = `
+            <div class="test-result error">
+              ❌ Cannot Test - Invoice Storage Not Available
+            </div>
+          `;
+        }
+      } catch (error) {
+        resultsDiv.innerHTML = `
+          <div class="test-result error">
+            ❌ Error Handling Test Error
+            
+            Error: ${error.message}
+          </div>
+        `;
+      }
+    }
+    
+    // Test performance
+    async function testPerformance() {
+      const resultsDiv = document.getElementById('advanced-results');
+      resultsDiv.innerHTML = '<div class="test-info">Testing performance...</div>';
+      
+      try {
+        if (window.invoiceStorage) {
+          const startTime = performance.now();
+          
+          // Test multiple operations
+          const operations = [];
+          for (let i = 0; i < 10; i++) {
+            const testId = `PERF-TEST-${i}-${Date.now()}`;
+            const start = performance.now();
+            await window.invoiceStorage.saveInvoice(testId, `Performance test ${i}`);
+            const end = performance.now();
+            operations.push(end - start);
+            
+            // Clean up
+            await window.invoiceStorage.deleteInvoice(testId);
+          }
+          
+          const totalTime = performance.now() - startTime;
+          const avgOperation = operations.reduce((a, b) => a + b, 0) / operations.length;
+          
+          resultsDiv.innerHTML = `
+            <div class="test-result">
+              ⚡ Performance Test Results
+              
+              Total Time: ${totalTime.toFixed(2)}ms
+              Operations: 10
+              Average Operation: ${avgOperation.toFixed(2)}ms
+              Fastest: ${Math.min(...operations).toFixed(2)}ms
+              Slowest: ${Math.max(...operations).toFixed(2)}ms
+              
+              Performance: ${avgOperation < 100 ? '✅ Excellent' : avgOperation < 500 ? '⚠️ Good' : '❌ Slow'}
+            </div>
+          `;
+        } else {
+          resultsDiv.innerHTML = `
+            <div class="test-result error">
+              ❌ Cannot Test - Invoice Storage Not Available
+            </div>
+          `;
+        }
+      } catch (error) {
+        resultsDiv.innerHTML = `
+          <div class="test-result error">
+            ❌ Performance Test Error
+            
+            Error: ${error.message}
+          </div>
+        `;
+      }
+    }
+
+    // GitHub Integration Functions
+    async function checkGitHubStatus() {
+      if (!window.invoiceStorage) {
+        showMessage('❌ Invoice storage system not loaded', 'error');
+        return;
+      }
+      
+      try {
+        const status = window.invoiceStorage.getGitHubCommitStatus();
+        
+        // Update status display
+        document.getElementById('github-connection').textContent = 
+          status.hasData ? '✅ Connected' : '❌ No Data';
+        
+        document.getElementById('github-commit-ready').textContent = 
+          status.fileReady ? '✅ Ready' : '❌ Not Ready';
+        
+        document.getElementById('github-last-sync').textContent = 
+          status.lastSync ? status.lastSync.toLocaleString() : 'Never';
+        
+        document.getElementById('github-pending').textContent = 
+          status.needsCommit ? '⚠️ Yes' : '✅ No';
+        
+        // Show/hide setup info
+        const setupInfo = document.getElementById('github-setup-info');
+        const setupStatus = document.getElementById('setup-status');
+        
+        if (status.fileReady && status.needsCommit) {
+          setupInfo.style.display = 'block';
+          setupStatus.textContent = 'Data ready for GitHub commit';
+          setupStatus.style.color = '#4CAF50';
+        } else if (status.hasData) {
+          setupInfo.style.display = 'block';
+          setupStatus.textContent = 'Data available, needs manual commit';
+          setupStatus.style.color = '#FF9800';
+        } else {
+          setupInfo.style.display = 'none';
+        }
+        
+        showMessage('✅ GitHub status updated', 'success');
+        
+      } catch (error) {
+        console.error('Failed to check GitHub status:', error);
+        showMessage('❌ Failed to check GitHub status', 'error');
+      }
+    }
+    
+    async function downloadGitHubData() {
+      if (!window.invoiceStorage) {
+        showMessage('❌ Invoice storage system not loaded', 'error');
+        return;
+      }
+      
+      try {
+        const success = await window.invoiceStorage.downloadPreparedData();
+        
+        if (success) {
+          showMessage('✅ Data file downloaded successfully! Upload it to GitHub.', 'success');
+          
+          // Show instructions
+          setTimeout(() => {
+            alert('📋 Instructions:\n\n1. Upload the downloaded file to your GitHub repository\n2. Replace data/barns-invoices.json\n3. Commit and push the changes\n4. Wait for GitHub Pages to update');
+          }, 1000);
+        } else {
+          showMessage('❌ No data ready for download', 'warning');
+        }
+        
+      } catch (error) {
+        console.error('Failed to download data:', error);
+        showMessage('❌ Failed to download data', 'error');
+      }
+    }
+    
+    // Initialize GitHub status on page load
+    window.addEventListener('load', () => {
+      setTimeout(checkGitHubStatus, 1000);
+    });
+  </script>
+</body>
+</html>

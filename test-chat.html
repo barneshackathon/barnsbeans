@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Barns Chat - Test Page</title>
+  <style>
+    /* ===== BARNS PROJECT - MAIN STYLESHEET ===== */
+    :root{ 
+      --green:#0f5b46;           /* Primary green color for branding */
+      --gold:#e9b949;            /* Gold accent color for rewards */
+      --text:#1a1d1c;            /* Main text color */
+      --bottom-nav-h:56px;       /* Height of bottom navigation bar */
+      --chat-input-h:56px;       /* Height of chat input area */
+      --safe-bottom: env(safe-area-inset-bottom, 0px);  /* Safe area for mobile devices */
+    }
+    
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:linear-gradient(120deg,#e6f1ee,#f5efe9);font-family:'Cairo',sans-serif;color:var(--text)}
+    
+    /* ===== CHATBOT HEADER STYLES ===== */
+    .chat-header{display:flex;align-items:center;justify-content:center;position:relative;background:var(--green);color:#fff;padding:10px 12px}
+    .chat-header .icon-btn.back{position:absolute;left:12px;top:50%;transform:translateY(-50%)}
+    
+    /* ===== CHAT TITLE AND BOT ICON ===== */
+    .chat-title{display:flex;align-items:center;gap:8px}
+    .chat-title .title{font-weight:750}
+    .chat-title img{width:85px;height:85px}
+    
+    /* ===== CHAT MESSAGES CONTAINER ===== */
+    .chat-body {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      height: calc(100vh - 200px);
+      max-height: 709px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      flex: 1;
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+      padding-bottom: calc(var(--chat-input-h) + 80px);
+    }
+    
+    /* ===== CHAT MESSAGE STYLES ===== */
+    .msg{max-width:80%;padding:10px 12px;border-radius:14px;font-size:14px}
+    .msg.bot{background:#eff8f4;border:1px solid #dcefe6;align-self:flex-start}
+    .msg.me{background:#0f5b46;color:#fff;align-self:flex-end}
+    
+    /* ===== CHAT INPUT AREA ===== */
+    .chat-input {
+      display: flex;
+      gap: 8px;
+      border-top: 1px solid #eee;
+      padding: 8px 12px;
+      position: fixed;
+      bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      z-index: 10;
+      min-height: var(--chat-input-h);
+      border-radius: 24px;
+      box-shadow: 0 6px 16px rgba(0,0,0,.08);
+      width: 100%;
+      max-width: 380px;
+    }
+    
+    .chat-input input {
+      flex: 1;
+      padding: 12px 14px;
+      border-radius: 20px;
+      border: 1px solid #dfe8e4;
+      font-size: 14px;
+    }
+    
+    .chat-input .send {
+      background: #0f5b46;
+      color: #fff;
+      border: 0;
+      border-radius: 18px;
+      padding: 0 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .chat-input .send:hover:not(:disabled) {
+      background: #0a4a3a;
+      transform: translateY(-1px);
+    }
+    
+    .chat-input .send:disabled {
+      background: #ccc;
+      color: #666;
+      cursor: not-allowed;
+      transform: none;
+      opacity: 0.6;
+    }
+    
+    /* ===== AI RESULT DISPLAY ===== */
+    #result {
+      padding: 16px;
+      margin: 16px;
+      background: #f8f9fa;
+      border-radius: 12px;
+      border: 1px solid #e9ecef;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #495057;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+    }
+    
+    /* Loading state for result display */
+    #result:contains("جاري المعالجة") {
+      color: #6c757d;
+      font-style: italic;
+    }
+    
+    /* Error state for result display */
+    #result:contains("خطأ") {
+      color: #dc3545;
+      background: rgba(220, 53, 69, 0.1);
+      border-color: #dc3545;
+    }
+    
+    /* ===== CHAT PAGE LAYOUT ===== */
+    body[data-page="chat"] .screen {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    
+    body[data-page="chat"] .chat-body {
+      flex: 1;
+      overflow-y: auto;
+    }
+    
+    .chat-input {
+      z-index: 100;
+    }
+    
+    /* ===== RESPONSIVE CHAT INPUT ADJUSTMENTS ===== */
+    @media (max-width: 380px) {
+      .chat-input {
+        width: calc(100% - 16px);
+        max-width: 364px;
+      }
+    }
+    
+    @media (min-width: 381px) {
+      .chat-input {
+        width: 100%;
+        max-width: 380px;
+      }
+    }
+    
+    /* ===== BOTTOM NAVIGATION ===== */
+    .bottom-nav{margin-top:auto; position:sticky; bottom:0; display:grid;grid-template-columns:repeat(4,1fr);
+      border-top:1px solid #eaeaea;background:#fff;padding:8px; padding-bottom:calc(8px + var(--safe-bottom)); z-index:9; min-height:var(--bottom-nav-h)}
+    .bottom-nav .item{display:grid;justify-items:center;color:#7a8582;text-decoration:none;font-size:11px}
+    .bottom-nav .item .ico{font-size:18px}
+    .bottom-nav .item.active{color:#0f5b46;font-weight:800}
+    .bottom-nav .item.disabled{opacity:.45;pointer-events:none}
+    
+    .bottom-nav .item .ico img{width:20px;height:20px;display:block;transition:transform .2s ease, filter .2s ease}
+    .bottom-nav .item.active .ico img{filter: brightness(0) saturate(100%) invert(25%) sepia(75%) saturate(473%) hue-rotate(118deg) brightness(92%) contrast(90%)}
+    .bottom-nav .item:active .ico img{transform:scale(0.9)}
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body data-page="chat">
+  <div class="screen">
+    <header class="chat-header">
+      <a class="icon-btn back" href="index.html" aria-label="Back">←</a>
+      <div class="chat-title">
+        <img src="imgs/HomePage/bot.png" alt="Barnie Bot" />
+        <div>
+          <div class="title">Barnie</div>
+          <small>AI Assistant</small>
+        </div>
+      </div>
+    </header>
+
+    <main class="chat-body" id="chat-body" role="log" aria-live="polite">
+      <div class="msg bot">Hey there! I'm Barnie, your friendly coffee buddy. How's your day going so far? Any drink on your mind?</div>
+    </main>
+
+    <form class="chat-input" id="chat-form">
+      <input id="user-input" type="text" placeholder="اكتب سؤالك…" autocomplete="off" required />
+      <button class="send" type="submit">إرسال</button>
+    </form>
+    
+    <div id="result">اكتب رسالة للبدء في المحادثة مع بارني</div>
+
+    <nav class="bottom-nav">
+      <a href="index.html" class="item active">
+        <span class="ico">🏠</span>
+        <span>Home</span>
+      </a>
+      <a href="tree.html" class="item">
+        <span class="ico">🌳</span>
+        <span>Tree</span>
+      </a>
+      <a href="#" class="item disabled">
+        <span class="ico">📋</span>
+        <span>Orders</span>
+      </a>
+      <a href="#" class="item disabled">
+        <span class="ico">👤</span>
+        <span>Account</span>
+      </a>
+    </nav>
+  </div>
+
+  <script>
+    /* ربط صفحة الشات مع n8n للهاكثون */
+    function initAIForm({ formSelector, inputSelector, outputSelector }) {
+      const form = document.querySelector(formSelector);
+      const input = document.querySelector(inputSelector);
+      const output = document.querySelector(outputSelector);
+      const WEBHOOK_URL = "https://sultannn.app.n8n.cloud/webhook/33d36dea-a8d9-439c-bbed-dc87c7e45315";
+      
+      if (!form || !input || !output) {
+        console.error('AI Form: Required elements not found');
+        return;
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault(); // مهم: يمنع الرفرش
+        const question = (input.value || "").trim();
+        if (!question) return;
+
+        const btn = form.querySelector("button");
+        if (btn) btn.disabled = true;
+        output.textContent = "جاري المعالجة…";
+
+        const controller = new AbortController();
+        const t = setTimeout(() => controller.abort(), 30000);
+
+        try {
+          const res = await fetch(WEBHOOK_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question }),
+            signal: controller.signal
+          });
+          
+          const text = await res.text();
+          
+          try {
+            const data = JSON.parse(text);
+            output.textContent = (data && (data.reply ?? data.message)) || JSON.stringify(data, null, 2) || "(لا يوجد رد)";
+          } catch {
+            output.textContent = text || "(لا يوجد رد)";
+          }
+        } catch (err) {
+          if (err.name === 'AbortError') {
+            output.textContent = "خطأ: انتهت مهلة الاتصال (30 ثانية)";
+          } else {
+            output.textContent = "خطأ: " + (err?.message || "تعذر الاتصال");
+          }
+        } finally {
+          clearTimeout(t);
+          if (btn) btn.disabled = false;
+        }
+      });
+    }
+
+    // Initialize the AI form when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      initAIForm({
+        formSelector: '#chat-form',
+        inputSelector: '#user-input',
+        outputSelector: '#result'
+      });
+    });
+  </script>
+</body>
+</html>
