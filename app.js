@@ -22,7 +22,7 @@ const LEAF_POSITIONS = [
 const GOLD_TTL_MS = 10 * 1000;
 const GOLD_EXP_KEY = 'barns-gold-expiries';
 const LAST_LEAF_MS_KEY = 'barns-last-leaf-added-ms';
-const INACTIVITY_THRESHOLD_MS = 30 * 1000;
+const INACTIVITY_THRESHOLD_MS = 15 * 1000;
 
 function scopedKey(base) {
   const name = (userName || '').trim().toLowerCase();
