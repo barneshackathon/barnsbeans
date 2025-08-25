@@ -1899,6 +1899,75 @@ body[data-page="tree"] .tree-wrapper .ground-img{ width:100%; height:auto; displ
   font-weight: 700;
 }
 
+/* Orders Page Styles */
+.orders-page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex: 1;
+  padding: 0;
+  padding-top: 20px;
+}
+
+.orders-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+}
+
+.orders-main-image {
+  width: 100%;
+  height: auto;
+  border-radius: 0;
+  box-shadow: none;
+  object-fit: cover;
+}
+
+/* Responsive adjustments for orders page */
+@media (max-width: 360px) {
+  .orders-page {
+    padding: 0;
+    padding-bottom: 16px;
+  }
+}
+
+/* Account Page Styles */
+.account-page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  flex: 1;
+  padding: 0;
+  padding-bottom: 20px;
+}
+
+.account-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+}
+
+.account-main-image {
+  width: 100%;
+  height: auto;
+  border-radius: 0;
+  box-shadow: none;
+  object-fit: cover;
+  margin-bottom: -20px;
+}
+
+/* Responsive adjustments for account page */
+@media (max-width: 360px) {
+  .account-page {
+    padding: 0;
+    padding-bottom: 16px;
+  }
+}
+
 
 
 
