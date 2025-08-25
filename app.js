@@ -107,6 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     fillCounters();
     mountPageSpecific();
+    setupOrdersPage();
     
 
     
@@ -1418,5 +1419,67 @@ function updateLoyaltyCardDisplay(totalLeaves) {
     }
   } catch (error) {
     console.error('Error updating loyalty card display:', error);
+  }
+}
+
+// Orders page functionality
+function setupOrdersPage() {
+  try {
+    const page = document.body.dataset.page;
+    if (page !== 'orders') return;
+    
+    // Load orders data and update display
+    updateOrdersDisplay();
+    
+    // Add event listeners for orders page
+    const scanQrBtn = document.querySelector('.orders-cta');
+    if (scanQrBtn) {
+      scanQrBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.href = 'qr.html';
+      });
+    }
+  } catch (error) {
+    console.error('Error setting up orders page:', error);
+  }
+}
+
+// Update orders display with data
+async function updateOrdersDisplay() {
+  try {
+    const totalOrdersElement = document.getElementById('total-orders');
+    const thisMonthElement = document.getElementById('this-month');
+    
+    if (!totalOrdersElement || !thisMonthElement) return;
+    
+    // Get orders data from invoice storage
+    let totalOrders = 0;
+    let thisMonthOrders = 0;
+    
+    if (window.invoiceStorage) {
+      try {
+        const activeInvoices = await window.invoiceStorage.getActiveInvoices();
+        totalOrders = activeInvoices.length;
+        
+        // Calculate this month's orders
+        const now = new Date();
+        const thisMonth = now.getMonth();
+        const thisYear = now.getFullYear();
+        
+        thisMonthOrders = activeInvoices.filter(invoice => {
+          const invoiceDate = new Date(invoice.timestamp);
+          return invoiceDate.getMonth() === thisMonth && invoiceDate.getFullYear() === thisYear;
+        }).length;
+      } catch (error) {
+        console.warn('Could not load orders from invoice storage:', error);
+      }
+    }
+    
+    // Update display
+    totalOrdersElement.textContent = totalOrders;
+    thisMonthElement.textContent = thisMonthOrders;
+    
+  } catch (error) {
+    console.error('Error updating orders display:', error);
   }
 }
