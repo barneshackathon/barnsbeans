@@ -1,0 +1,18 @@
+{
+  "SAMPLE-INV-001": {
+    "id": "SAMPLE-INV-001",
+    "data": "Sample invoice for demonstration",
+    "timestamp": 1703123456789,
+    "user": "System",
+    "status": "active",
+    "deleted": false
+  },
+  "SAMPLE-INV-002": {
+    "id": "SAMPLE-INV-002", 
+    "data": "Another sample invoice",
+    "timestamp": 1703123456790,
+    "user": "System",
+    "status": "active",
+    "deleted": false
+  }
+}
